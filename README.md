@@ -2,7 +2,7 @@
 
 **Logline:** A 2D platformer where the player paints terrain with colors that rewrite its physics (slippery, bouncy, or scorching) to build their own path to the goal. *(Platformer + Terrain Painting)*
 
-**Team:** Yixiao Li (A) · [Teammate Name] (B)
+**Team:** Yixiao Li (A) · Junhao Zhang (B)
 
 ## Scope
 - One level, gray-box only (Unity primitives / code-drawn shapes). No art polish.
@@ -26,7 +26,7 @@ All scripts go in `Assets/Scripts/`. Each person commits their own files from th
 | Owner | Area | Suggested scripts |
 |---|---|---|
 | **A: Yixiao** | Player + color mechanics | `PlayerController.cs` (move, jump), `ColorEffects.cs` (blue / green / red behavior), `Hazard.cs` (spikes, death, respawn) |
-| **B: Teammate** | Level + painting + UI | `LevelBuilder.cs` (builds the level layout), `PaintTool.cs` (mouse painting, paint budget, ice melting), `GameUI.cs` (paint left, messages, win screen, R to reset) |
+| **B: Junhao** | Level + painting + UI | `LevelBuilder.cs` (builds the level layout), `PaintTool.cs` (mouse painting, paint budget, ice melting), `GameUI.cs` (paint left, messages, win screen, R to reset) |
 
 Agree on the shared interface early (for example: a `Tile` component with a `PaintColor` field that `PaintTool` sets and `ColorEffects` reads).
 
