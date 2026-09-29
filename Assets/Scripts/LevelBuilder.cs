@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -11,7 +12,12 @@ public sealed class LevelBuilder : MonoBehaviour
     static Sprite squareSprite;
     static Sprite spikeSprite;
 
+    readonly Dictionary<Vector2Int, SpriteRenderer> cellRenderers =
+        new Dictionary<Vector2Int, SpriteRenderer>();
+
     Transform levelRoot;
+
+    public TileMapData Map { get; private set; }
 
     /// <summary>
     /// Creates a builder automatically for the current prototype scene.
@@ -38,52 +44,76 @@ public sealed class LevelBuilder : MonoBehaviour
         ClearLevel();
         EnsureSprites();
 
+        Map = new TileMapData(definition);
+        Map.CellChanged += UpdateCellVisual;
+
         levelRoot = new GameObject($"Level {definition.Number} - {definition.Name}").transform;
         levelRoot.SetParent(transform, false);
 
-        for (int row = 0; row < definition.Height; row++)
+        for (int y = 0; y < Map.Height; y++)
         {
-            for (int column = 0; column < definition.Width; column++)
+            for (int x = 0; x < Map.Width; x++)
             {
-                char symbol = definition.Rows[row][column];
-                Vector2 position = new Vector2(column, definition.Height - 1 - row);
-                CreateSymbol(symbol, position);
+                GridCell cell = Map.GetCell(x, y);
+                CreateCell(cell);
             }
         }
 
         ConfigureCamera(definition);
     }
 
-    void CreateSymbol(char symbol, Vector2 position)
+    void CreateCell(GridCell cell)
     {
-        switch (symbol)
+        Vector2 position = cell.Position;
+
+        switch (cell.Kind)
         {
-            case '#':
-                CreateBlock("Ground", position, new Color(0.35f, 0.37f, 0.42f), TileKind.Ground);
+            case GridCellKind.Ground:
+                CreateBlock(cell, "Ground", position, GroundColor(), TileKind.Ground);
                 break;
-            case 'I':
-                CreateBlock("Ice", position, new Color(0.45f, 0.85f, 1f), TileKind.Ice);
+            case GridCellKind.Ice:
+                CreateBlock(cell, "Ice", position, IceColor(), TileKind.Ice);
                 break;
-            case '^':
+            case GridCellKind.FloorSpike:
                 CreateSpike("Floor Spike", position, false);
                 break;
-            case 'v':
+            case GridCellKind.CeilingSpike:
                 CreateSpike("Ceiling Spike", position, true);
                 break;
-            case 'P':
+            case GridCellKind.PlayerSpawn:
                 CreatePlayerMarker(position);
                 break;
-            case 'F':
+            case GridCellKind.Goal:
                 CreateFlag(position);
                 break;
         }
     }
 
-    void CreateBlock(string objectName, Vector2 position, Color color, TileKind kind)
+    void CreateBlock(GridCell cell, string objectName, Vector2 position, Color color, TileKind kind)
     {
         GameObject block = CreateSpriteObject(objectName, position, squareSprite, color, 0);
         Tile tile = block.AddComponent<Tile>();
         tile.Kind = kind;
+        cellRenderers[cell.Position] = block.GetComponent<SpriteRenderer>();
+    }
+
+    // This keeps the picture in sync when another script paints or melts a cell.
+    void UpdateCellVisual(GridCell cell)
+    {
+        if (!cellRenderers.TryGetValue(cell.Position, out SpriteRenderer renderer))
+            return;
+
+        renderer.enabled = cell.Kind != GridCellKind.Empty;
+        if (!renderer.enabled)
+            return;
+
+        renderer.color = cell.Paint switch
+        {
+            PaintColor.Blue => new Color(0.18f, 0.48f, 1f),
+            PaintColor.Green => new Color(0.2f, 0.82f, 0.38f),
+            PaintColor.Red => new Color(0.95f, 0.2f, 0.18f),
+            _ => cell.Kind == GridCellKind.Ice ? IceColor() : GroundColor()
+        };
     }
 
     void CreateSpike(string objectName, Vector2 position, bool pointsDown)
@@ -176,8 +206,24 @@ public sealed class LevelBuilder : MonoBehaviour
 
     void ClearLevel()
     {
+        if (Map != null)
+            Map.CellChanged -= UpdateCellVisual;
+
+        Map = null;
+        cellRenderers.Clear();
+
         if (levelRoot != null)
             Destroy(levelRoot.gameObject);
+    }
+
+    static Color GroundColor()
+    {
+        return new Color(0.35f, 0.37f, 0.42f);
+    }
+
+    static Color IceColor()
+    {
+        return new Color(0.45f, 0.85f, 1f);
     }
 
     static void EnsureSprites()
