@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
 
 /// <summary>Melts a whole connected ice group when red paint touches it.</summary>
 public sealed class IceMeltSystem : MonoBehaviour
@@ -32,14 +29,6 @@ public sealed class IceMeltSystem : MonoBehaviour
     void Update()
     {
         TryConnectSystems();
-
-        // F3 is just a handy test shortcut until the level buttons are added.
-        if (F3Pressed() && builder != null && paintTool != null)
-        {
-            builder.BuildLevel(3);
-            paintTool.ConfigureLevel(3);
-            Debug.Log("Loaded Level 3 for the ice melting test.");
-        }
     }
 
     void TryConnectSystems()
@@ -103,12 +92,4 @@ public sealed class IceMeltSystem : MonoBehaviour
             paintTool.CellPainted -= OnCellPainted;
     }
 
-    static bool F3Pressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        return Keyboard.current != null && Keyboard.current.f3Key.wasPressedThisFrame;
-#else
-        return Input.GetKeyDown(KeyCode.F3);
-#endif
-    }
 }
