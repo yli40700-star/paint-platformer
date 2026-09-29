@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -94,8 +95,9 @@ public sealed class PaintTool : MonoBehaviour
 
     void UpdateHoveredCell()
     {
-        if (builder == null || builder.Map == null || Camera.main == null)
+        if (builder == null || builder.Map == null || Camera.main == null || PointerIsOverUI())
         {
+            hasHoveredCell = false;
             SetOutlineVisible(false);
             return;
         }
@@ -224,5 +226,10 @@ public sealed class PaintTool : MonoBehaviour
         if (number == 2) return Input.GetKeyDown(KeyCode.Alpha2);
         return number == 3 && Input.GetKeyDown(KeyCode.Alpha3);
 #endif
+    }
+
+    static bool PointerIsOverUI()
+    {
+        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 }
