@@ -181,6 +181,8 @@ public sealed class LevelBuilder : MonoBehaviour
 
     void ConfigureCamera(LevelDefinition definition)
     {
+        const float playableHeightRatio = 0.77f;
+
         Camera sceneCamera = Camera.main;
         if (sceneCamera == null)
             sceneCamera = FindFirstObjectByType<Camera>();
@@ -194,14 +196,16 @@ public sealed class LevelBuilder : MonoBehaviour
 
         sceneCamera.orthographic = true;
         sceneCamera.backgroundColor = new Color(0.055f, 0.065f, 0.09f);
-        sceneCamera.transform.position = new Vector3(
-            (definition.Width - 1) * 0.5f,
-            (definition.Height - 1) * 0.5f,
-            -10f);
-
         float verticalSize = definition.Height * 0.5f + 1f;
         float horizontalSize = definition.Width / (2f * Mathf.Max(sceneCamera.aspect, 0.1f)) + 1f;
-        sceneCamera.orthographicSize = Mathf.Max(verticalSize, horizontalSize);
+        sceneCamera.orthographicSize = Mathf.Max(verticalSize / playableHeightRatio, horizontalSize);
+
+        // The bottom UI is taller than the top UI, so the map looks better a little higher.
+        float cameraOffset = sceneCamera.orthographicSize * 0.055f;
+        sceneCamera.transform.position = new Vector3(
+            (definition.Width - 1) * 0.5f,
+            (definition.Height - 1) * 0.5f - cameraOffset,
+            -10f);
     }
 
     void ClearLevel()
