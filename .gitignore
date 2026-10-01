@@ -5,6 +5,8 @@
 [Uu]ser[Ss]ettings/
 [Bb]uild/
 [Bb]uilds/
+!docs/Build/
+!docs/Build/**
 *.csproj
 *.sln
 *.suo
